@@ -10,15 +10,20 @@
 
 @interface ViewController ()
 
+@property (nonatomic, assign) Boolean initialized;
+
+// GL context
 @property (nonatomic, strong) GLKView *rootView;
 @property (nonatomic, strong) GLKViewController *glkViewController;
 @property (nonatomic, strong) EAGLContext *eaglCtx;
 
-@property (nonatomic, assign) Boolean initialized;
-
+// GL objects
 @property (nonatomic, assign) GLuint program;
 @property (nonatomic, assign) int positionAttrib;
 @property (nonatomic, assign) GLuint buffer;
+
+// AR context
+@property (nonatomic, strong) ARSession *arSession;
 
 @end
 
@@ -37,6 +42,10 @@
   _glkViewController = [[GLKViewController alloc] init];
   _glkViewController.view = _rootView;
   _glkViewController.preferredFramesPerSecond = 60;
+  
+  _arSession = [[ARSession alloc] init];
+  ARWorldTrackingConfiguration *arConfig = [[ARWorldTrackingConfiguration alloc] init];
+  [_arSession runWithConfiguration:arConfig];
 }
 
 static GLfloat verts[] = { -2.0f, 0.0f, 0.0f, -2.0f, 2.0f, 2.0f };
@@ -54,8 +63,10 @@ static GLfloat verts[] = { -2.0f, 0.0f, 0.0f, -2.0f, 2.0f, 2.0f };
     (
      precision highp float;
      attribute vec2 aPosition;
+     uniform mat4 uProjection;
+     uniform mat4 uView;
      void main() {
-       gl_Position = vec4(1.0 - 2.0 * aPosition, 0, 1);
+       gl_Position = uProjection * uView * vec4(aPosition, -5, 1);
      }
     );
     glShaderSource(vert, 1, &vertSrc, NULL);
@@ -96,6 +107,17 @@ static GLfloat verts[] = { -2.0f, 0.0f, 0.0f, -2.0f, 2.0f, 2.0f };
   glClearColor(1.0, 0.0, 0.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glDrawArrays(GL_TRIANGLES, 0, 3);
+  
+  GLint vp[4];
+  glGetIntegerv(GL_VIEWPORT, vp);
+  
+  matrix_float4x4 viewMat = [_arSession.currentFrame.camera viewMatrixForOrientation:UIInterfaceOrientationPortrait];
+  matrix_float4x4 projMat = [_arSession.currentFrame.camera projectionMatrixForOrientation:UIInterfaceOrientationPortrait viewportSize:CGSizeMake(vp[2], vp[3]) zNear:0.01 zFar:1000.0];
+  
+  GLfloat identity[] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+  
+  glUniformMatrix4fv(glGetUniformLocation(_program, "uView"), 1, GL_FALSE, &viewMat.columns[0]);
+  glUniformMatrix4fv(glGetUniformLocation(_program, "uProjection"), 1, GL_FALSE, &projMat.columns[0]);
 }
 
 - (void)didReceiveMemoryWarning {

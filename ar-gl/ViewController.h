@@ -8,8 +8,9 @@
 
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
+#import <ARKit/ARKit.h>
 
-@interface ViewController : UIViewController <GLKViewDelegate>
+@interface ViewController : UIViewController <GLKViewDelegate, ARSessionDelegate>
 
 
 @end
