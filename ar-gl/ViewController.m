@@ -281,6 +281,11 @@ static GLfloat verts[] = { -2.0f, 0.0f, 0.0f, -2.0f, 2.0f, 2.0f };
   glUniformMatrix4fv(glGetUniformLocation(_program, "uProjection"), 1, GL_FALSE, &projMat.columns[0]);
   
   glDrawArrays(GL_TRIANGLES, 0, 3);
+  
+  
+  matrix_float4x4 modMat = matrix_invert(viewMat);
+  const float *pModMat = (const float *)(&modMat);
+  NSLog(@"%f %f %f", pModMat[12], pModMat[13], pModMat[14]);
 }
 
 - (void)didReceiveMemoryWarning {
