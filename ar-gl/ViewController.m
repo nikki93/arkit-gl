@@ -172,7 +172,7 @@ static GLfloat verts[] = { -2.0f, 0.0f, 0.0f, -2.0f, 2.0f, 2.0f };
      uniform mat4 uProjection;
      uniform mat4 uView;
      void main() {
-       gl_Position = uProjection * uView * vec4(aPosition, -5, 1);
+       gl_Position = uProjection * uView * vec4(0.1 * aPosition, -0.44, 1);
      }
     );
     glShaderSource(vert, 1, &vertSrc, NULL);
